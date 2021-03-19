@@ -3,46 +3,67 @@ package io.agora.agorartm
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import io.agora.rtm.*
+import io.agora.rtm.ChannelAttributeOptions
+import io.agora.rtm.ErrorInfo
+import io.agora.rtm.LocalInvitation
+import io.agora.rtm.RemoteInvitation
+import io.agora.rtm.ResultCallback
+import io.agora.rtm.RtmAttribute
+import io.agora.rtm.RtmChannel
+import io.agora.rtm.RtmChannelAttribute
+import io.agora.rtm.RtmChannelMember
+import io.agora.rtm.RtmClient
+import io.agora.rtm.SendMessageOptions
+import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
-class AgoraRtmPlugin: MethodCallHandler {
-  private val registrar: Registrar
-  private val methodChannel: MethodChannel
+
+class AgoraRtmPlugin: FlutterPlugin, MethodCallHandler {
+  private lateinit var applicationContext: Context
+  private lateinit var methodChannel: MethodChannel
+  private lateinit var messenger: BinaryMessenger
   private val eventHandler: Handler
   private var nextClientIndex: Long = 0
   private var clients = HashMap<Long, RTMClient>()
 
   companion object {
+    @Deprecated("It's being deprecated in favor of Android embedding v2.")
     @JvmStatic
     fun registerWith(registrar: Registrar) {
-      val channel = MethodChannel(registrar.messenger(), "io.agora.rtm")
-      val plugin = AgoraRtmPlugin(registrar, channel)
-      channel.setMethodCallHandler(plugin)
+      val plugin = AgoraRtmPlugin()
+      plugin.onAttachedToEngine(registrar.context(), registrar.messenger())
     }
   }
 
-  constructor(registrar: Registrar, channel: MethodChannel) {
-    this.registrar = registrar
-    this.methodChannel = channel
+  constructor() {
     this.eventHandler = Handler(Looper.getMainLooper())
   }
 
   private fun getActiveContext(): Context {
-    return when {
-      (registrar.activity() == null) -> registrar.context()
-      else -> registrar.activity()
-    }
+    return applicationContext
   }
 
   private fun runMainThread(f: () -> Unit) {
     eventHandler.post(f)
+  }
+
+  override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+    onAttachedToEngine(binding.applicationContext, binding.binaryMessenger);
+  }
+
+  private fun onAttachedToEngine(applicationContext: Context, messenger: BinaryMessenger) {
+    this.applicationContext = applicationContext
+    this.messenger = messenger
+    this.methodChannel = MethodChannel(messenger, "io.agora.rtm")
+    methodChannel.setMethodCallHandler(this)
+  }
+
+  override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
   }
 
   override fun onMethodCall(methodCall: MethodCall, result: Result) {
@@ -96,7 +117,7 @@ class AgoraRtmPlugin: MethodCallHandler {
           nextClientIndex++
         }
 
-        val rtmClient = RTMClient(getActiveContext(), appId, nextClientIndex, registrar.messenger(), eventHandler)
+        val rtmClient = RTMClient(getActiveContext(), appId, nextClientIndex, messenger, eventHandler)
         result.success(hashMapOf(
                 "errorCode" to 0,
                 "index" to nextClientIndex
@@ -811,7 +832,7 @@ class AgoraRtmPlugin: MethodCallHandler {
       }
       "createChannel" -> {
         val channelId = args?.get("channelId") as String
-        val agoraRtmChannel = RTMChannel(clientIndex, channelId, registrar.messenger(), eventHandler)
+        val agoraRtmChannel = RTMChannel(clientIndex, channelId, messenger, eventHandler)
         val channel: RtmChannel? = client.createChannel(channelId, agoraRtmChannel)
         if (null == channel) {
           runMainThread {
