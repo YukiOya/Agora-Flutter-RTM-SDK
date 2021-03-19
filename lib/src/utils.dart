@@ -1,7 +1,7 @@
 class AgoraRtmMessage {
   String text;
-  int ts;
-  bool offline;
+  int? ts;
+  bool? offline;
 
   AgoraRtmMessage(this.text, this.ts, this.offline);
 
@@ -47,7 +47,7 @@ class AgoraRtmChannelAttribute {
   String userId;
   int updateTs;
 
-  AgoraRtmChannelAttribute(this.key, this.value, {this.userId, this.updateTs});
+  AgoraRtmChannelAttribute(this.key, this.value, {required this.userId, required this.updateTs});
 
   AgoraRtmChannelAttribute.fromJson(Map<dynamic, dynamic> json)
       : key = json['key'],

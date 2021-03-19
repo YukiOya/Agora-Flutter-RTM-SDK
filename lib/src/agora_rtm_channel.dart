@@ -21,30 +21,30 @@ class AgoraRtmChannelException implements Exception {
 
 class AgoraRtmChannel {
   /// Occurs when you receive error events.
-  void Function(dynamic error) onError;
+  void Function(dynamic error)? onError;
 
   /// Occurs when receiving a channel message.
-  void Function(AgoraRtmMessage message, AgoraRtmMember fromMember)
+  void Function(AgoraRtmMessage message, AgoraRtmMember fromMember)?
       onMessageReceived;
 
   /// Occurs when a user joins the channel.
-  void Function(AgoraRtmMember member) onMemberJoined;
+  void Function(AgoraRtmMember member)? onMemberJoined;
 
   /// Occurs when a channel member leaves the channel.
-  void Function(AgoraRtmMember member) onMemberLeft;
+  void Function(AgoraRtmMember member)? onMemberLeft;
 
   /// Occurs when channel attribute updated.
-  void Function(List<AgoraRtmChannelAttribute> attributes) onAttributesUpdated;
+  void Function(List<AgoraRtmChannelAttribute> attributes)? onAttributesUpdated;
 
   /// Occurs when channel member count updated.
-  void Function(int count) onMemberCountUpdated;
+  void Function(int count)? onMemberCountUpdated;
 
   final String channelId;
   final int _clientIndex;
 
-  bool _closed;
+  late bool _closed;
 
-  StreamSubscription<dynamic> _eventSubscription;
+  late StreamSubscription<dynamic> _eventSubscription;
 
   EventChannel _addEventChannel() {
     return new EventChannel(
@@ -57,26 +57,26 @@ class AgoraRtmChannel {
       case 'onMessageReceived':
         AgoraRtmMessage message = AgoraRtmMessage.fromJson(map['message']);
         AgoraRtmMember member = AgoraRtmMember.fromJson(map);
-        this?.onMessageReceived?.call(message, member);
+        onMessageReceived?.call(message, member);
         break;
       case 'onMemberJoined':
         AgoraRtmMember member = AgoraRtmMember.fromJson(map);
-        this?.onMemberJoined?.call(member);
+        onMemberJoined?.call(member);
         break;
       case 'onMemberLeft':
         AgoraRtmMember member = AgoraRtmMember.fromJson(map);
-        this?.onMemberLeft?.call(member);
+        onMemberLeft?.call(member);
         break;
       case 'onAttributesUpdated':
         List<Map<dynamic, dynamic>> attributes =
             List<Map<dynamic, dynamic>>.from(map['attributes']);
-        this?.onAttributesUpdated?.call(attributes
+        onAttributesUpdated?.call(attributes
             .map((attr) => AgoraRtmChannelAttribute.fromJson(attr))
             .toList());
         break;
       case 'onMemberCountUpdated':
         int count = map['count'];
-        this?.onMemberCountUpdated?.call(count);
+        onMemberCountUpdated?.call(count);
         break;
     }
   }
@@ -104,7 +104,7 @@ class AgoraRtmChannel {
   }
 
   Future<void> sendMessage(AgoraRtmMessage message,
-      [bool offline, bool historical]) async {
+      [bool? offline, bool? historical]) async {
     final res = await _callNative("sendMessage", {
       'message': message.text,
       "offline": offline,

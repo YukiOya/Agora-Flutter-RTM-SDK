@@ -36,7 +36,7 @@ class AgoraRtmClient {
     final index = res['index'];
     AgoraRtmClient client = AgoraRtmClient._(index);
     _clients[index] = client;
-    return _clients[index];
+    return client;
   }
 
   /// get the agora native sdk version
@@ -50,56 +50,56 @@ class AgoraRtmClient {
   }
 
   /// Occurs when the connection state between the SDK and the Agora RTM system changes.
-  void Function(int state, int reason) onConnectionStateChanged;
+  void Function(int state, int reason)? onConnectionStateChanged;
 
   /// Occurs when the local user receives a peer-to-peer message.
-  void Function(AgoraRtmMessage message, String peerId) onMessageReceived;
+  void Function(AgoraRtmMessage message, String peerId)? onMessageReceived;
 
   /// Occurs when your token expires.
-  void Function() onTokenExpired;
+  void Function()? onTokenExpired;
 
   /// Occurs when you receive error events.
-  void Function() onError;
+  void Function()? onError;
 
   /// Callback to the caller: occurs when the caller receives the call invitation.
-  void Function(AgoraRtmLocalInvitation invite) onLocalInvitationReceivedByPeer;
+  void Function(AgoraRtmLocalInvitation invite)? onLocalInvitationReceivedByPeer;
 
   /// Callback to the caller: occurs when the caller accepts the call invitation.
-  void Function(AgoraRtmLocalInvitation invite) onLocalInvitationAccepted;
+  void Function(AgoraRtmLocalInvitation invite)? onLocalInvitationAccepted;
 
   /// Callback to the caller: occurs when the caller declines the call invitation.
-  void Function(AgoraRtmLocalInvitation invite) onLocalInvitationRefused;
+  void Function(AgoraRtmLocalInvitation invite)? onLocalInvitationRefused;
 
   /// Callback to the caller: occurs when the caller cancels a call invitation.
-  void Function(AgoraRtmLocalInvitation invite) onLocalInvitationCanceled;
+  void Function(AgoraRtmLocalInvitation invite)? onLocalInvitationCanceled;
 
   /// Callback to the caller: occurs when the life cycle of the outgoing call invitation ends in failure.
-  void Function(AgoraRtmLocalInvitation invite, int errorCode)
+  void Function(AgoraRtmLocalInvitation invite, int errorCode)?
       onLocalInvitationFailure;
 
   /// Callback to the caller: occurs when the callee receives the call invitation.
-  void Function(AgoraRtmRemoteInvitation invite)
+  void Function(AgoraRtmRemoteInvitation invite)?
       onRemoteInvitationReceivedByPeer;
 
   /// Callback to the caller: occurs when the callee accepts the call invitation.
-  void Function(AgoraRtmRemoteInvitation invite) onRemoteInvitationAccepted;
+  void Function(AgoraRtmRemoteInvitation invite)? onRemoteInvitationAccepted;
 
   /// Callback to the caller: occurs when the callee declines the call invitation.
-  void Function(AgoraRtmRemoteInvitation invite) onRemoteInvitationRefused;
+  void Function(AgoraRtmRemoteInvitation invite)? onRemoteInvitationRefused;
 
   /// Callback to the caller: occurs when the caller cancels a call invitation.
-  void Function(AgoraRtmRemoteInvitation invite) onRemoteInvitationCanceled;
+  void Function(AgoraRtmRemoteInvitation invite)? onRemoteInvitationCanceled;
 
   /// Callback to the caller: occurs when the life cycle of the outgoing call invitation ends in failure.
-  void Function(AgoraRtmRemoteInvitation invite, int errorCode)
+  void Function(AgoraRtmRemoteInvitation invite, int errorCode)?
       onRemoteInvitationFailure;
 
   var _channels = <String, AgoraRtmChannel>{};
 
-  bool _closed;
+  late bool _closed;
 
   final int _clientIndex;
-  StreamSubscription<dynamic> _clientSubscription;
+  late StreamSubscription<dynamic> _clientSubscription;
 
   EventChannel _addEventChannel(name) {
     return new EventChannel(name);
@@ -111,63 +111,55 @@ class AgoraRtmClient {
       case 'onConnectionStateChanged':
         int state = map['state'];
         int reason = map['reason'];
-        this?.onConnectionStateChanged?.call(state, reason);
+        onConnectionStateChanged?.call(state, reason);
         break;
       case 'onMessageReceived':
         AgoraRtmMessage message = AgoraRtmMessage.fromJson(map["message"]);
         String peerId = map["peerId"];
-        this?.onMessageReceived?.call(message, peerId);
+        onMessageReceived?.call(message, peerId);
         break;
       case 'onTokenExpired':
-        this?.onTokenExpired?.call();
+        onTokenExpired?.call();
         break;
       case 'onLocalInvitationReceivedByPeer':
-        this
-            ?.onLocalInvitationReceivedByPeer
-            ?.call(AgoraRtmLocalInvitation.fromJson(map['localInvitation']));
+        onLocalInvitationReceivedByPeer
+          ?.call(AgoraRtmLocalInvitation.fromJson(map['localInvitation']));
         break;
       case 'onLocalInvitationAccepted':
-        this
-            ?.onLocalInvitationAccepted
+        onLocalInvitationAccepted
             ?.call(AgoraRtmLocalInvitation.fromJson(map['localInvitation']));
         break;
       case 'onLocalInvitationRefused':
-        this
-            ?.onLocalInvitationRefused
+        onLocalInvitationRefused
             ?.call(AgoraRtmLocalInvitation.fromJson(map['localInvitation']));
         break;
       case 'onLocalInvitationCanceled':
-        this
-            ?.onLocalInvitationCanceled
+        onLocalInvitationCanceled
             ?.call(AgoraRtmLocalInvitation.fromJson(map['localInvitation']));
         break;
       case 'onLocalInvitationFailure':
-        this?.onLocalInvitationFailure?.call(
+        onLocalInvitationFailure?.call(
             AgoraRtmLocalInvitation.fromJson(map['localInvitation']),
             map['errorCode']);
         break;
       case 'onRemoteInvitationReceivedByPeer':
-        this
-            ?.onRemoteInvitationReceivedByPeer
+        onRemoteInvitationReceivedByPeer
             ?.call(AgoraRtmRemoteInvitation.fromJson(map['remoteInvitation']));
         break;
       case 'onRemoteInvitationAccepted':
-        this
-            ?.onRemoteInvitationAccepted
+        onRemoteInvitationAccepted
             ?.call(AgoraRtmRemoteInvitation.fromJson(map['remoteInvitation']));
         break;
       case 'onRemoteInvitationRefused':
-        this
-            ?.onRemoteInvitationRefused
+        onRemoteInvitationRefused
             ?.call(AgoraRtmRemoteInvitation.fromJson(map['remoteInvitation']));
         break;
       case 'onRemoteInvitationCanceled':
-        this
-            ?.onRemoteInvitationCanceled
+        onRemoteInvitationCanceled
             ?.call(AgoraRtmRemoteInvitation.fromJson(map['remoteInvitation']));
         break;
       case 'onRemoteInvitationFailure':
-        this?.onRemoteInvitationFailure?.call(
+        onRemoteInvitationFailure?.call(
             AgoraRtmRemoteInvitation.fromJson(map['remoteInvitation']),
             map['errorCode']);
         break;
@@ -222,7 +214,7 @@ class AgoraRtmClient {
   /// - "!", "#", "$", "%", "&", "(", ")", "+", "-", ":", ";", "<", "=", ".", ">", "?", "@", "]", "[", "^", "_", " {", "}", "|", "~", ","
   /// Do not set userId as null and do not start with a space.
   /// If you log in with the same user ID from a different instance, you will be kicked out of your previous login and removed from previously joined channels.
-  Future login(String token, String userId) async {
+  Future login(String? token, String userId) async {
     final res = await _callNative("login", {'token': token, 'userId': userId});
     if (res["errorCode"] != 0)
       throw AgoraRtmClientException(
@@ -259,7 +251,7 @@ class AgoraRtmClient {
 
   /// Allows a user to send a peer-to-peer message to a specific peer user.
   Future<void> sendMessageToPeer(String peerId, AgoraRtmMessage message,
-      [bool offline, bool historical]) async {
+      [bool? offline, bool? historical]) async {
     final res = await _callNative("sendMessageToPeer", {
       "peerId": peerId,
       "message": message.text,
@@ -487,7 +479,7 @@ class AgoraRtmClient {
           res['errorCode']);
     AgoraRtmChannel channel = AgoraRtmChannel(_clientIndex, channelId);
     _channels[channelId] = channel;
-    return _channels[channelId];
+    return channel;
   }
 
   /// Releases an [AgoraRtmChannel].
